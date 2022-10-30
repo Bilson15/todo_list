@@ -22,8 +22,7 @@ class HomeRepository {
 
       return taks;
     } else {
-      var error = json.decode(response.body)['error'];
-      throw error;
+      throw 'Ocorreu um erro!';
     }
   }
 
@@ -40,8 +39,7 @@ class HomeRepository {
 
       return cliente;
     } else {
-      var error = json.decode(response.body)['message'];
-      throw error;
+      throw 'Ocorreu um erro!';
     }
   }
 
@@ -53,8 +51,7 @@ class HomeRepository {
     if (response.statusCode == 200) {
       return true;
     } else {
-      var error = json.decode(response.body)['error'];
-      throw error;
+      throw 'Ocorreu um erro!';
     }
   }
 }
