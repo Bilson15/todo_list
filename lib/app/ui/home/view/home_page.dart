@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:todo_list/app/model/status_enum.dart';
 import 'package:todo_list/app/model/task_model.dart';
 import 'package:todo_list/app/ui/home/controller/home_controller.dart';
 import 'package:todo_list/app/ui/taks_page/view/task_page.dart';
@@ -94,10 +95,10 @@ class HomePage extends StatelessWidget {
 
   Widget _buildListTile(TaskModel taskModel) {
     return ListTile(
-      selected: taskModel.status ?? false,
-      selectedTileColor: taskModel.status ?? false ? accentColor : null,
-      leading: taskModel.status ?? false ? const Icon(Icons.check) : null,
-      selectedColor: taskModel.status ?? false ? Colors.white : null,
+      selected: taskModel.status.value == StatusEnum.finish.value,
+      selectedTileColor: taskModel.status.value == StatusEnum.finish.value ? accentColor : null,
+      leading: taskModel.status.value == StatusEnum.finish.value ? const Icon(Icons.check) : null,
+      selectedColor: taskModel.status.value == StatusEnum.finish.value ? Colors.white : null,
       title: Text(
         taskModel.title ?? '',
         style: const TextStyle(
@@ -107,7 +108,7 @@ class HomePage extends StatelessWidget {
       ),
       subtitle: Text(taskModel.subtitle ?? 'Sem descrição'),
       onTap: () => Get.to(
-        TaskPage(
+        () => TaskPage(
           task: taskModel,
         ),
       ),
@@ -194,11 +195,14 @@ class HomePage extends StatelessWidget {
                             labelText: 'Estimativa',
                             counterText: '',
                           ),
+                          onChanged: (e) {
+                            print(e.length);
+                          },
                           validator: (value) {
-                            if (controller.title.text.isEmpty) {
+                            if (value?.isEmpty ?? true) {
                               return 'Estimativa é obrigatório!';
                             }
-                            if (controller.title.text.length < 8) {
+                            if ((value?.length ?? 0) < 8) {
                               return 'Preencha por completo!';
                             }
                           },

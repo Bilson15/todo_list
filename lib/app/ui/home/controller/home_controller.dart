@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:todo_list/app/model/status_enum.dart';
 import 'package:todo_list/app/model/task_model.dart';
 import 'package:todo_list/app/ui/home/repository/home_repository.dart';
 import 'package:todo_list/utils/mask_formatter.dart';
@@ -68,7 +69,7 @@ class HomePageController extends GetxController {
         title: title.text,
         subtitle: description.text,
         timer: estimated.text,
-        status: false,
+        status: StatusEnum.init,
       );
 
       await homeRepository.insertTask(taskModel);
@@ -90,7 +91,7 @@ class HomePageController extends GetxController {
     await Future.delayed(const Duration(seconds: 1));
 
     listTaks.sort((a, b) {
-      if ((a?.status ?? false) || (a?.status ?? false)) {
+      if ((a?.status.value == StatusEnum.finish.value) || (a?.status.value == StatusEnum.finish.value)) {
         return 1;
       } else {
         return 0;

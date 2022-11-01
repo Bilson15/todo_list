@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/app/components/button_component.dart';
+import 'package:todo_list/app/model/status_enum.dart';
 import 'package:todo_list/app/model/task_model.dart';
 import 'package:get/get.dart';
 import 'package:todo_list/app/ui/taks_page/controller/task_controller.dart';
 import 'package:todo_list/theme/app_theme.dart';
 
 class TaskPage extends StatelessWidget {
-  final TaskModel? task;
-  final controller = Get.put(TaskController());
+  final TaskModel task;
 
-  TaskPage({super.key, required this.task});
+  const TaskPage({super.key, required this.task});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.put(TaskController(task));
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          task?.title ?? '',
+          controller.task.value?.title ?? '',
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         centerTitle: true,
@@ -42,47 +43,28 @@ class TaskPage extends StatelessWidget {
                           backgroundColor: accentColor,
                         ),
                         Center(
-                          child: Row(
+                          child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Text(
-                                    'Seg: ',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                  SizedBox(
-                                    height: 8,
-                                  ),
-                                  Text(
-                                    'Min: ',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                  SizedBox(
-                                    height: 8,
-                                  ),
-                                  Text(
-                                    'Hour: ',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ],
+                              Text(
+                                '${controller.seconds}',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 120),
                               ),
-                              Column(
+                              Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text(
-                                    '${controller.seconds}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 50),
+                                    '${controller.hours}',
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
+                                  ),
+                                  const Text(
+                                    ':',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                                   ),
                                   Text(
                                     '${controller.minutes}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 50),
-                                  ),
-                                  Text(
-                                    '${controller.hours}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 50),
+                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 30),
                                   ),
                                 ],
                               ),
@@ -114,7 +96,7 @@ class TaskPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Text(
-                          '${task?.subtitle ?? ''} ',
+                          '${controller.task.value?.subtitle ?? ''} ',
                           style: const TextStyle(fontSize: 16),
                         ),
                       ],
@@ -122,29 +104,87 @@ class TaskPage extends StatelessWidget {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: const [
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: ButtonComponent(
-                          titulo: 'Pausar',
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: ButtonComponent(
-                          titulo: 'Concluir',
-                        ),
-                      ),
-                    ),
-                  ],
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Divider(
+                  thickness: 2,
+                  color: graySecundary,
                 ),
-              )
+              ),
+              Obx(
+                () => (controller.task.value?.status.value ?? false) != StatusEnum.finish.value
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Row(
+                          children: [
+                            (controller.task.value?.status.value ?? false) == StatusEnum.stoped.value
+                                ? Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      child: ButtonComponent(
+                                        titulo: 'Continuar',
+                                        onPressed: () {
+                                          controller.startTimer();
+                                        },
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                            (controller.task.value?.status.value ?? false) == StatusEnum.progress.value
+                                ? Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      child: ButtonComponent(
+                                        titulo: 'Pausar',
+                                        onPressed: () {
+                                          controller.stopTimer();
+                                        },
+                                        backgroundColor: orange,
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink(),
+                            (controller.task.value?.status) == StatusEnum.init
+                                ? Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                      child: ButtonComponent(
+                                        titulo: 'Iniciar',
+                                        onPressed: () {
+                                          controller.startTimer();
+                                        },
+                                      ),
+                                    ),
+                                  )
+                                : const SizedBox.shrink()
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+              Obx(
+                () => (controller.task.value?.status.value ?? false) != StatusEnum.finish.value
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: ButtonComponent(
+                                  titulo: 'CONCLUIR',
+                                  onPressed: () {
+                                    controller.startTimer();
+                                  },
+                                  backgroundColor: gray,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ],
           ),
         ),
