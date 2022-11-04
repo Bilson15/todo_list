@@ -174,7 +174,7 @@ class TaskPage extends StatelessWidget {
                                 child: ButtonComponent(
                                   titulo: 'CONCLUIR',
                                   onPressed: () {
-                                    controller.startTimer();
+                                    controller.completeTask();
                                   },
                                   backgroundColor: gray,
                                 ),

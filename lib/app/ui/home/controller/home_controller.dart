@@ -8,7 +8,7 @@ import 'package:todo_list/utils/mask_formatter.dart';
 class HomePageController extends GetxController {
   final maskFormatter = MaskFormatter();
   final homeRepository = HomeRepository();
-  final listTaks = RxList<TaskModel?>([]);
+  final listTasks = RxList<TaskModel?>([]);
   final formKey = GlobalKey<FormState>();
 
   late final title = TextEditingController();
@@ -28,12 +28,12 @@ class HomePageController extends GetxController {
   }
 
   Future<void> fetchTaks() async {
-    listTaks.clear();
+    listTasks.clear();
     loading(true);
     try {
       List<TaskModel?> retorno = await homeRepository.fetchTaks();
 
-      listTaks.addAll(retorno);
+      listTasks.addAll(retorno);
     } catch (e) {
       print(e);
     } finally {
@@ -90,7 +90,7 @@ class HomePageController extends GetxController {
   Future<void> _refrashListOrdem() async {
     await Future.delayed(const Duration(seconds: 1));
 
-    listTaks.sort((a, b) {
+    listTasks.sort((a, b) {
       if ((a?.status.value == StatusEnum.finish.value) || (a?.status.value == StatusEnum.finish.value)) {
         return 1;
       } else {
@@ -98,11 +98,11 @@ class HomePageController extends GetxController {
       }
     });
 
-    listTaks.refresh();
+    listTasks.refresh();
   }
 
   TaskModel? removeIndex(TaskModel taskModel) {
-    listTaks.remove(taskModel);
+    listTasks.remove(taskModel);
     deleteTask(taskModel.id ?? -1);
 
     return taskModel;

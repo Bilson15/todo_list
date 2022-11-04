@@ -31,7 +31,7 @@ class HomePage extends StatelessWidget {
             : RefreshIndicator(
                 color: accentColor,
                 child: ListView(
-                  children: controller.listTaks.map(
+                  children: controller.listTasks.map(
                     (element) {
                       final item = element?.title ?? '';
                       return Dismissible(
@@ -190,21 +190,20 @@ class HomePage extends StatelessWidget {
                           cursorColor: accentColor,
                           textInputAction: TextInputAction.done,
                           keyboardType: TextInputType.number,
-                          maxLength: 8,
+                          maxLength: 5,
                           decoration: const InputDecoration(
                             labelText: 'Estimativa',
+                            hintText: 'HH:MM',
                             counterText: '',
                           ),
-                          onChanged: (e) {
-                            print(e.length);
-                          },
                           validator: (value) {
                             if (value?.isEmpty ?? true) {
                               return 'Estimativa é obrigatório!';
                             }
-                            if ((value?.length ?? 0) < 8) {
+                            if ((value?.length ?? 0) < 5) {
                               return 'Preencha por completo!';
                             }
+                            return null;
                           },
                         ),
                       ],

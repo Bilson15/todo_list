@@ -13,7 +13,7 @@ class TaskModel {
   late final String? title;
   late final String? subtitle;
   late final String? timer;
-  late final String? timeUtilized;
+  late String? timeUtilized = '';
   late StatusEnum status;
 
   TaskModel.fromJson(Map<String, dynamic> json) {
