@@ -101,9 +101,9 @@ class HomePageController extends GetxController {
     listTasks.refresh();
   }
 
-  TaskModel? removeIndex(TaskModel taskModel) {
+  Future<TaskModel?> removeIndex(TaskModel taskModel) async {
     listTasks.remove(taskModel);
-    deleteTask(taskModel.id ?? -1);
+    await deleteTask(taskModel.id ?? -1);
 
     return taskModel;
   }

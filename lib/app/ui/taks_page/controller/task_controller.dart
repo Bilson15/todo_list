@@ -11,11 +11,15 @@ class TaskController extends GetxController {
   final hours = RxInt(0);
 
   late Timer timer;
+  late Timer timerLate;
   late final Rx<TaskModel?> task = Rx<TaskModel?>(null);
 
   late final TimerModel? firstTimerModel;
   late final TimerModel? utilizedTimerModel;
+  late final TimerModel? latedTimerModel;
   final TaskRepository taskRepository = TaskRepository();
+
+  final finalizing = RxBool(false);
 
   TaskController(TaskModel task) {
     this.task.value = task;
@@ -40,12 +44,14 @@ class TaskController extends GetxController {
     timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (hours.value == 0 && minutes.value == 0 && seconds.value == 0) {
         timer.cancel();
-        task.value!.status = StatusEnum.stoped;
+        updateTask();
+        task.value!.lated = true;
+        runTimer();
       } else {
         seconds.value--;
 
         if (minutes.value == firstTimerModel?.minute) {
-          if (hours.value == firstTimerModel?.hour) {
+          if (hours.value == firstTimerModel?.hour && minutes.value == 0) {
             hours.value--;
             minutes.value = 59;
           } else {
@@ -74,11 +80,38 @@ class TaskController extends GetxController {
     });
   }
 
+  void startTimerLate() {
+    task.value!.status = StatusEnum.progress;
+    timerLate = Timer.periodic(const Duration(seconds: 1), (timer) {
+      seconds.value++;
+
+      if (seconds.value == 60) {
+        seconds.value = 0;
+        if (minutes.value != 60) {
+          minutes.value++;
+        }
+      }
+
+      if (minutes.value == 60) {
+        minutes.value = 0;
+        hours.value++;
+      }
+    });
+  }
+
   void stopTimer() {
-    timer.cancel();
+    (task.value!.lated ?? false) ? timerLate.cancel() : timer.cancel();
     task.value!.status = StatusEnum.stoped;
     task.refresh();
     updateTask();
+  }
+
+  void runTimer() {
+    if (task.value?.lated ?? false) {
+      startTimerLate();
+    } else {
+      startTimer();
+    }
   }
 
   getInitialTimer() {
@@ -103,12 +136,28 @@ class TaskController extends GetxController {
     }
   }
 
+  getLatedTimer() {
+    if (task.value != null && task.value?.timeLate != null) {
+      List<String> latedTimer = task.value!.timeLate!.split(':');
+
+      if (latedTimer.length == 3) {
+        latedTimerModel =
+            TimerModel(hour: int.parse(latedTimer[0]), minute: int.parse(latedTimer[1]), seconds: int.parse(latedTimer[2]));
+      }
+    }
+  }
+
   getTimers() {
     getInitialTimer();
     getUtilizedTimer();
+    getLatedTimer();
 
     if (task.value != null) {
-      if (task.value?.timeUtilized != null) {
+      if (task.value!.timeLate!.isNotEmpty) {
+        hours.value = latedTimerModel?.hour ?? 0;
+        minutes.value = latedTimerModel?.minute ?? 0;
+        seconds.value = latedTimerModel?.seconds ?? 0;
+      } else if (task.value?.timeUtilized != null) {
         hours.value = utilizedTimerModel?.hour ?? 0;
         minutes.value = utilizedTimerModel?.minute ?? 0;
         seconds.value = utilizedTimerModel?.seconds ?? 0;
@@ -120,7 +169,11 @@ class TaskController extends GetxController {
   }
 
   preparTimerTaskToUpdate() {
-    task.value?.timeUtilized = '${hours.value}:${minutes.value}:${seconds.value}';
+    if (task.value?.lated ?? false) {
+      task.value?.timeLate = '${hours.value}:${minutes.value}:${seconds.value}';
+    } else {
+      task.value?.timeUtilized = '${hours.value}:${minutes.value}:${seconds.value}';
+    }
   }
 
   updateTask() async {
@@ -134,9 +187,12 @@ class TaskController extends GetxController {
     } finally {}
   }
 
-  completeTask() {
+  Future<void> completeTask() async {
+    finalizing(true);
     task.value!.status = StatusEnum.stoped;
     task.value!.status = StatusEnum.finish;
-    updateTask();
+    await updateTask();
+
+    finalizing(false);
   }
 }

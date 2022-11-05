@@ -7,6 +7,7 @@ class TaskModel {
     this.subtitle,
     this.timer,
     this.timeUtilized,
+    this.lated,
     required this.status,
   });
   late final int? id;
@@ -14,7 +15,9 @@ class TaskModel {
   late final String? subtitle;
   late final String? timer;
   late String? timeUtilized = '';
+  late String? timeLate = '';
   late StatusEnum status;
+  late bool? lated = false;
 
   TaskModel.fromJson(Map<String, dynamic> json) {
     id = int.parse(json['id']);
@@ -23,6 +26,8 @@ class TaskModel {
     timer = json['timer'];
     timeUtilized = json['timeUtilized'];
     status = statusHelper(json['status']);
+    lated = json['lated'];
+    timeLate = json['timeLate'];
   }
 
   Map<String, dynamic> toJson() {
@@ -33,6 +38,8 @@ class TaskModel {
       'timer': timer,
       'timeUtilized': timeUtilized,
       'status': status.value,
+      'lated': lated,
+      'timeLate': timeLate,
     };
   }
 

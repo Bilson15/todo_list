@@ -31,22 +31,24 @@ class HomePage extends StatelessWidget {
             : RefreshIndicator(
                 color: accentColor,
                 child: ListView(
-                  children: controller.listTasks.map(
-                    (element) {
-                      final item = element?.title ?? '';
-                      return Dismissible(
-                        key: Key(item),
-                        onDismissed: (direction) {
-                          TaskModel? taskRemoved = controller.removeIndex(element);
+                  children: controller.listTasks.isNotEmpty
+                      ? controller.listTasks.map(
+                          (element) {
+                            final item = element?.title ?? '';
+                            return Dismissible(
+                              key: Key(item),
+                              onDismissed: (direction) async {
+                                TaskModel? taskRemoved = await controller.removeIndex(element);
 
-                          _buildAlertRemoveTask(context, taskRemoved);
-                        },
-                        background: _deleteIcon(),
-                        direction: DismissDirection.startToEnd,
-                        child: _buildListTile(element!),
-                      );
-                    },
-                  ).toList(),
+                                _buildAlertRemoveTask(context, taskRemoved);
+                              },
+                              background: _deleteIcon(),
+                              direction: DismissDirection.startToEnd,
+                              child: _buildListTile(element!),
+                            );
+                          },
+                        ).toList()
+                      : _buildEmptyList(),
                 ),
                 onRefresh: () => controller.fetchTaks(),
               ),
@@ -57,7 +59,7 @@ class HomePage extends StatelessWidget {
   PreferredSizeWidget? _buildAppBar() {
     return AppBar(
       title: const Text(
-        'ToDo List',
+        'To Do List',
         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
       ),
       centerTitle: true,
@@ -72,8 +74,8 @@ class HomePage extends StatelessWidget {
         duration: const Duration(seconds: 5),
         action: SnackBarAction(
           label: "Desfazer",
-          onPressed: () {
-            controller.insertTaskRemoved(taskRemoved!);
+          onPressed: () async {
+            await controller.insertTaskRemoved(taskRemoved!);
           },
         ),
       ),
@@ -113,6 +115,31 @@ class HomePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildEmptyList() {
+    return [
+      Padding(
+        padding: const EdgeInsets.only(top: 32),
+        child: Column(
+          children: const [
+            Icon(Icons.cancel, color: graySecundary, size: 50),
+            SizedBox(
+              height: 12,
+            ),
+            Text(
+              'Nenhuma tarefa cadastrada no momento, vamos começar ?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: graySecundary,
+              ),
+            ),
+          ],
+        ),
+      )
+    ];
   }
 
   _openFormCreateTask() {
@@ -202,6 +229,9 @@ class HomePage extends StatelessWidget {
                             }
                             if ((value?.length ?? 0) < 5) {
                               return 'Preencha por completo!';
+                            }
+                            if (value == '00:00') {
+                              return 'Não é possível estimar zero';
                             }
                             return null;
                           },
