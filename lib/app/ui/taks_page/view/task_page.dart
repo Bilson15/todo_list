@@ -41,53 +41,99 @@ class TaskPage extends StatelessWidget {
                 )
               : Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 50),
-                      child: Center(
-                        child: SizedBox(
-                          height: 250,
-                          width: 250,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              CircularProgressIndicator(
-                                value: 1 - controller.seconds / 60,
-                                valueColor: const AlwaysStoppedAnimation(Colors.white),
-                                strokeWidth: 12,
-                                backgroundColor: (controller.task.value?.lated ?? false) ? orange : accentColor,
+                    SizedBox(
+                      height: 320,
+                      width: 320,
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            left: 235,
+                            top: 48,
+                            child: CustomPaint(
+                              size: Size(
+                                80,
+                                (78 * 0.58).toDouble(),
                               ),
-                              Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      '${controller.seconds}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 120),
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${controller.hours}',
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: gray),
-                                        ),
-                                        const Text(
-                                          ':',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: gray),
-                                        ),
-                                        Text(
-                                          '${controller.minutes}',
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: gray),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
+                              painter: RPSCustomPainter((controller.task.value?.lated ?? false) ? yellow : accentColor),
+                            ),
                           ),
-                        ),
+                          Center(
+                            child: SizedBox(
+                              height: 250,
+                              width: 250,
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  CircularProgressIndicator(
+                                    value: (controller.task.value?.status ?? false) != StatusEnum.finish
+                                        ? 1 - controller.seconds / 60
+                                        : 1 - 60 / 60,
+                                    valueColor: const AlwaysStoppedAnimation(Colors.white),
+                                    strokeWidth: 12,
+                                    backgroundColor: (controller.task.value?.lated ?? false) ? yellow : accentColor,
+                                  ),
+                                  Center(
+                                    child: (controller.task.value?.status ?? false) == StatusEnum.finish
+                                        ? Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.check_circle_rounded,
+                                                color: (controller.task.value?.lated ?? false) ? yellow : accentColor,
+                                                size: 85,
+                                              ),
+                                            ],
+                                          )
+                                        : Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                controller.formatPaddingLeftZero(controller.seconds.value),
+                                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 120, color: gray),
+                                              ),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    controller.formatPaddingLeftZero(controller.hours.value),
+                                                    style:
+                                                        const TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: gray),
+                                                  ),
+                                                  const Text(
+                                                    ':',
+                                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: gray),
+                                                  ),
+                                                  Text(
+                                                    controller.formatPaddingLeftZero(controller.minutes.value),
+                                                    style:
+                                                        const TextStyle(fontWeight: FontWeight.bold, fontSize: 30, color: gray),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 140,
+                            top: 10,
+                            child: Container(
+                              height: 10,
+                              width: 40,
+                              decoration: BoxDecoration(
+                                color: (controller.task.value?.lated ?? false) ? yellow : accentColor,
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(20.0),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Padding(
@@ -109,9 +155,11 @@ class TaskPage extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Text(
-                                '${controller.task.value?.subtitle ?? ''} ',
-                                style: const TextStyle(fontSize: 16),
+                              Flexible(
+                                child: Text(
+                                  '${controller.task.value?.subtitle ?? ''} ',
+                                  style: const TextStyle(fontSize: 16),
+                                ),
                               ),
                             ],
                           ),
@@ -153,7 +201,7 @@ class TaskPage extends StatelessWidget {
                                               onPressed: () {
                                                 controller.stopTimer();
                                               },
-                                              backgroundColor: orange,
+                                              backgroundColor: yellow,
                                             ),
                                           ),
                                         )
@@ -164,8 +212,8 @@ class TaskPage extends StatelessWidget {
                                             padding: const EdgeInsets.symmetric(horizontal: 8),
                                             child: ButtonComponent(
                                               titulo: 'Iniciar',
-                                              onPressed: () {
-                                                controller.startTimer();
+                                              onPressed: () async {
+                                                await controller.runTimer();
                                               },
                                             ),
                                           ),
@@ -214,10 +262,132 @@ class TaskPage extends StatelessWidget {
                             )
                           : const SizedBox.shrink(),
                     ),
+                    Obx(
+                      () => (controller.task.value?.status.value ?? false) == StatusEnum.finish.value
+                          ? Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    children: [
+                                      const Icon(Icons.schedule, size: 35, color: graySecundary),
+                                      const Text(
+                                        'Estimado',
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 18,
+                                          color: graySecundary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 8,
+                                      ),
+                                      Text(
+                                        '${controller.formatPaddingLeftZero(controller.firstTimerModel?.hour ?? 0)}:${controller.formatPaddingLeftZero(controller.firstTimerModel?.minute ?? 0)}:00',
+                                        style: const TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 20,
+                                          color: gray,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Column(
+                                    children: [
+                                      const Icon(Icons.timer_outlined, size: 35, color: graySecundary),
+                                      const Text(
+                                        'Utilizado',
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 18,
+                                          color: graySecundary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 8,
+                                      ),
+                                      Text(
+                                        '${controller.formatPaddingLeftZero(controller.utilizedTimerModel?.hour ?? 0)}:${controller.formatPaddingLeftZero(controller.utilizedTimerModel?.minute ?? 0)}:${controller.formatPaddingLeftZero(controller.utilizedTimerModel?.seconds ?? 0)}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 20,
+                                          color: gray,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Column(
+                                    children: [
+                                      const Icon(Icons.timer_off_outlined, size: 35, color: graySecundary),
+                                      const Text(
+                                        'Atraso',
+                                        style: TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 18,
+                                          color: graySecundary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 8,
+                                      ),
+                                      Text(
+                                        '${controller.formatPaddingLeftZero(controller.latedTimerModel?.hour ?? 0)}:${controller.formatPaddingLeftZero(controller.latedTimerModel?.minute ?? 0)}:${controller.formatPaddingLeftZero(controller.latedTimerModel?.seconds ?? 0)}',
+                                        style: const TextStyle(
+                                          fontFamily: 'Roboto',
+                                          fontSize: 20,
+                                          color: gray,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
                   ],
                 ),
         ),
       ),
     );
+  }
+}
+
+class RPSCustomPainter extends CustomPainter {
+  late final Color color;
+
+  RPSCustomPainter(this.color);
+
+  @override
+  void paint(
+    Canvas canvas,
+    Size size,
+  ) {
+    Paint paint0 = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill
+      ..strokeWidth = 1;
+
+    Path path0 = Path();
+    path0.moveTo(size.width * 0.2083333, size.height * 0.4285714);
+    path0.lineTo(size.width * 0.2916667, size.height * 0.5700000);
+    path0.lineTo(size.width * 0.5010333, size.height * 0.2163143);
+    path0.lineTo(size.width * 0.4161667, size.height * 0.0708429);
+    path0.lineTo(size.width * 0.2083333, size.height * 0.4285714);
+    path0.close();
+
+    canvas.drawPath(path0, paint0);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
   }
 }

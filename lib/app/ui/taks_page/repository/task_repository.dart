@@ -17,11 +17,7 @@ class TaskRepository {
     );
 
     if (response.statusCode == 200) {
-      var data = jsonDecode(utf8.decode(response.body.codeUnits));
-
-      // TaskModel? task = TaskModel.fromJson(data);
-
-      // return task;
+      jsonDecode(utf8.decode(response.body.codeUnits));
     } else {
       throw 'Ocorreu um erro!';
     }

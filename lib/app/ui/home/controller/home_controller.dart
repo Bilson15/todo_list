@@ -35,7 +35,7 @@ class HomePageController extends GetxController {
 
       listTasks.addAll(retorno);
     } catch (e) {
-      print(e);
+      Get.snackbar("Ops", "ocorreu um erro.");
     } finally {
       await _refrashListOrdem();
       loading(false);
@@ -43,20 +43,22 @@ class HomePageController extends GetxController {
   }
 
   Future<void> deleteTask(int id) async {
+    loading(true);
     try {
       await homeRepository.deleteTask(id);
     } catch (e) {
-      print(e);
+      Get.snackbar("Ops", "ocorreu um erro.");
     } finally {
       await fetchTaks();
     }
   }
 
   Future<void> insertTaskRemoved(TaskModel taskModel) async {
+    loading(true);
     try {
       await homeRepository.insertTask(taskModel);
     } catch (e) {
-      print(e);
+      Get.snackbar("Ops", "ocorreu um erro.");
     } finally {
       await fetchTaks();
     }
@@ -65,16 +67,11 @@ class HomePageController extends GetxController {
   Future<void> insertTaskCreate() async {
     creating(true);
     try {
-      final taskModel = TaskModel(
-        title: title.text,
-        subtitle: description.text,
-        timer: estimated.text,
-        status: StatusEnum.init,
-      );
-
+      final taskModel =
+          TaskModel(title: title.text, subtitle: description.text, timer: estimated.text, status: StatusEnum.init, lated: false);
       await homeRepository.insertTask(taskModel);
     } catch (e) {
-      print(e);
+      Get.snackbar("Ops", "ocorreu um erro.");
     } finally {
       await fetchTaks();
       creating(false);

@@ -10,13 +10,13 @@ class TaskController extends GetxController {
   final minutes = RxInt(0);
   final hours = RxInt(0);
 
-  late Timer timer;
-  late Timer timerLate;
+  Timer? timer;
+  Timer? timerLate;
   late final Rx<TaskModel?> task = Rx<TaskModel?>(null);
 
-  late final TimerModel? firstTimerModel;
-  late final TimerModel? utilizedTimerModel;
-  late final TimerModel? latedTimerModel;
+  late TimerModel? firstTimerModel = TimerModel(hour: 0, minute: 0, seconds: 0);
+  late TimerModel? utilizedTimerModel = TimerModel(hour: 0, minute: 0, seconds: 0);
+  late TimerModel? latedTimerModel = TimerModel(hour: 0, minute: 0, seconds: 0);
   final TaskRepository taskRepository = TaskRepository();
 
   final finalizing = RxBool(false);
@@ -36,6 +36,7 @@ class TaskController extends GetxController {
     if (task.value!.status != StatusEnum.finish) {
       stopTimer();
     }
+    Get.delete<TaskController>();
     super.onClose();
   }
 
@@ -100,13 +101,15 @@ class TaskController extends GetxController {
   }
 
   void stopTimer() {
-    (task.value!.lated ?? false) ? timerLate.cancel() : timer.cancel();
-    task.value!.status = StatusEnum.stoped;
-    task.refresh();
-    updateTask();
+    if (timerLate != null && timer != null) {
+      (task.value!.lated ?? false) ? timerLate!.cancel() : timer!.cancel();
+      task.value!.status = StatusEnum.stoped;
+      task.refresh();
+      updateTask();
+    }
   }
 
-  void runTimer() {
+  Future<void> runTimer() async {
     if (task.value?.lated ?? false) {
       startTimerLate();
     } else {
@@ -183,7 +186,7 @@ class TaskController extends GetxController {
         await taskRepository.updateTask(task.value!);
       }
     } catch (e) {
-      print(e);
+      Get.snackbar("Ops", "ocorreu um erro.");
     } finally {}
   }
 
@@ -194,5 +197,9 @@ class TaskController extends GetxController {
     await updateTask();
 
     finalizing(false);
+  }
+
+  String formatPaddingLeftZero(int number) {
+    return number.toString().padLeft(2, '0');
   }
 }

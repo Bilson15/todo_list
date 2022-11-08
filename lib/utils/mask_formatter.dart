@@ -4,7 +4,7 @@ class MaskFormatter {
   MaskTextInputFormatter hourFormat({String? value}) {
     return MaskTextInputFormatter(
       initialText: value.toString(),
-      mask: '##:**',
+      mask: '##:*#',
       filter: {"#": RegExp(r'[0-9]'), "*": RegExp(r'[0-6]')},
     );
   }

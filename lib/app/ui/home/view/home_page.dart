@@ -98,7 +98,11 @@ class HomePage extends StatelessWidget {
   Widget _buildListTile(TaskModel taskModel) {
     return ListTile(
       selected: taskModel.status.value == StatusEnum.finish.value,
-      selectedTileColor: taskModel.status.value == StatusEnum.finish.value ? accentColor : null,
+      selectedTileColor: taskModel.status.value == StatusEnum.finish.value
+          ? (taskModel.lated ?? false)
+              ? yellow
+              : accentColor
+          : null,
       leading: taskModel.status.value == StatusEnum.finish.value ? const Icon(Icons.check) : null,
       selectedColor: taskModel.status.value == StatusEnum.finish.value ? Colors.white : null,
       title: Text(
@@ -199,6 +203,7 @@ class HomePage extends StatelessWidget {
                             if (controller.title.text.isEmpty) {
                               return 'Título é obrigatório!';
                             }
+                            return null;
                           },
                         ),
                         TextFormField(
@@ -248,9 +253,9 @@ class HomePage extends StatelessWidget {
                     onTap: () async {
                       controller.formKey.currentState!.save();
                       if (controller.formKey.currentState!.validate()) {
+                        Get.back();
                         await controller.insertTaskCreate();
                         controller.clearFieldsCreate();
-                        Get.back();
                       }
                     },
                     child: Container(
