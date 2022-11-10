@@ -189,7 +189,9 @@ class TaskController extends GetxController {
       task.value?.timeLate = '${hours.value}:${minutes.value}:${seconds.value}';
     }
 
-    task.value?.timeUtilized = '${hours.value}:${minutes.value}:${seconds.value}';
+    if (!(task.value?.lated ?? false)) {
+      task.value?.timeUtilized = '${hours.value}:${minutes.value}:${seconds.value}';
+    }
   }
 
   updateTask() async {
