@@ -8,4 +8,8 @@ class MaskFormatter {
       filter: {"#": RegExp(r'[0-9]'), "*": RegExp(r'[0-6]')},
     );
   }
+
+  String formatPaddingLeftZero(int number) {
+    return number.toString().padLeft(2, '0');
+  }
 }

@@ -13,14 +13,8 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _openFormCreateTask();
-        },
-        backgroundColor: accentColor,
-        child: const Icon(Icons.add, size: 50),
-      ),
-      appBar: _buildAppBar(),
+      floatingActionButton: _buildCreateTaskButton(context),
+      appBar: _buildAppBar(context),
       body: Obx(
         () => controller.loading.value
             ? const Center(
@@ -56,7 +50,17 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  PreferredSizeWidget? _buildAppBar() {
+  _buildCreateTaskButton(context) {
+    return FloatingActionButton(
+      onPressed: () {
+        _openFormCreateTask(context);
+      },
+      backgroundColor: accentColor,
+      child: const Icon(Icons.add, size: 50),
+    );
+  }
+
+  PreferredSizeWidget? _buildAppBar(context) {
     return AppBar(
       title: const Text(
         'To Do List',
@@ -64,6 +68,22 @@ class HomePage extends StatelessWidget {
       ),
       centerTitle: true,
       backgroundColor: accentColor,
+    );
+  }
+
+  _buildThemePickTime() {
+    return TimePickerThemeData(
+      backgroundColor: graySecundary,
+      dayPeriodTextColor: Colors.white,
+      hourMinuteColor: MaterialStateColor.resolveWith(
+          (states) => states.contains(MaterialState.selected) ? accentColor : Colors.blueGrey.shade800),
+      hourMinuteTextColor: MaterialStateColor.resolveWith((states) => Colors.white),
+      dialHandColor: Colors.blueGrey.shade700,
+      dialBackgroundColor: Colors.blueGrey.shade800,
+      hourMinuteTextStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      dayPeriodTextStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+      helpTextStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+      dialTextColor: MaterialStateColor.resolveWith((states) => states.contains(MaterialState.selected) ? yellow : Colors.white),
     );
   }
 
@@ -146,7 +166,7 @@ class HomePage extends StatelessWidget {
     ];
   }
 
-  _openFormCreateTask() {
+  _openFormCreateTask(context) {
     return Get.dialog(
       AlertDialog(
         shape: const RoundedRectangleBorder(
@@ -216,31 +236,66 @@ class HomePage extends StatelessWidget {
                             counterText: '',
                           ),
                         ),
-                        TextFormField(
-                          controller: controller.estimated,
-                          inputFormatters: [controller.maskFormatter.hourFormat()],
-                          cursorColor: accentColor,
-                          textInputAction: TextInputAction.done,
-                          keyboardType: TextInputType.number,
-                          maxLength: 5,
-                          decoration: const InputDecoration(
-                            labelText: 'Estimativa',
-                            hintText: 'HH:MM',
-                            counterText: '',
-                          ),
-                          validator: (value) {
-                            if (value?.isEmpty ?? true) {
-                              return 'Estimativa é obrigatório!';
-                            }
-                            if ((value?.length ?? 0) < 5) {
-                              return 'Preencha por completo!';
-                            }
-                            if (value == '00:00') {
-                              return 'Não é possível estimar zero';
-                            }
-                            return null;
-                          },
+                        const SizedBox(
+                          height: 12,
                         ),
+                        GestureDetector(
+                          onTap: () async {
+                            controller.timeOfDay = await showTimePicker(
+                              context: context,
+                              initialTime: const TimeOfDay(hour: 00, minute: 30),
+                              initialEntryMode: TimePickerEntryMode.dialOnly,
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    timePickerTheme: _buildThemePickTime(),
+                                    textButtonTheme: TextButtonThemeData(
+                                      style: ButtonStyle(
+                                        foregroundColor: MaterialStateColor.resolveWith((states) => Colors.white),
+                                      ),
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
+
+                            if (controller.timeOfDay != null) {
+                              controller.estimated.value =
+                                  '${controller.maskFormatter.formatPaddingLeftZero(controller.timeOfDay!.hour)}:${controller.maskFormatter.formatPaddingLeftZero(controller.timeOfDay!.minute)}';
+                            }
+                          },
+                          child: Obx(
+                            () => Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Selecionar Estimativa: ',
+                                  style: TextStyle(
+                                    color: accentColor,
+                                  ),
+                                ),
+                                Text(
+                                  controller.estimated.value,
+                                  style: const TextStyle(
+                                    fontSize: 20,
+                                    color: gray,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: const BoxDecoration(
+                                      color: accentColor, borderRadius: BorderRadius.all(Radius.circular(5.0))),
+                                  child: const Icon(
+                                    Icons.timer_outlined,
+                                    color: yellow,
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        )
                       ],
                     ),
                   ),
@@ -252,7 +307,7 @@ class HomePage extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () async {
                       controller.formKey.currentState!.save();
-                      if (controller.formKey.currentState!.validate()) {
+                      if (controller.formKey.currentState!.validate() && controller.estimated.value.isNotEmpty) {
                         Get.back();
                         await controller.insertTaskCreate();
                         controller.clearFieldsCreate();

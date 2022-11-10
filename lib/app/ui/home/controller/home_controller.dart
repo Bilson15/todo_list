@@ -1,4 +1,4 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:todo_list/app/model/status_enum.dart';
 import 'package:todo_list/app/model/task_model.dart';
@@ -13,7 +13,8 @@ class HomePageController extends GetxController {
 
   late final title = TextEditingController();
   late final description = TextEditingController();
-  late final estimated = TextEditingController();
+  late final estimated = RxString('');
+  late TimeOfDay? timeOfDay;
 
   final creating = RxBool(false);
   final loading = RxBool(false);
@@ -68,7 +69,7 @@ class HomePageController extends GetxController {
     creating(true);
     try {
       final taskModel =
-          TaskModel(title: title.text, subtitle: description.text, timer: estimated.text, status: StatusEnum.init, lated: false);
+          TaskModel(title: title.text, subtitle: description.text, timer: estimated.value, status: StatusEnum.init, lated: false);
       await homeRepository.insertTask(taskModel);
     } catch (e) {
       Get.snackbar("Ops", "ocorreu um erro.");
@@ -81,7 +82,7 @@ class HomePageController extends GetxController {
   clearFieldsCreate() {
     title.clear();
     description.clear();
-    estimated.clear();
+    estimated.value = '';
   }
 
   Future<void> _refrashListOrdem() async {

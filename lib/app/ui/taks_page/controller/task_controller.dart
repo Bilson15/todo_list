@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import 'package:todo_list/app/model/status_enum.dart';
 import 'package:todo_list/app/model/task_model.dart';
 import 'package:todo_list/app/model/timer_model.dart';
+import 'package:todo_list/app/ui/home/controller/home_controller.dart';
 import 'package:todo_list/app/ui/taks_page/repository/task_repository.dart';
+import 'package:todo_list/utils/mask_formatter.dart';
 
 class TaskController extends GetxController {
   final seconds = RxInt(60);
@@ -19,6 +21,8 @@ class TaskController extends GetxController {
   late TimerModel? latedTimerModel = TimerModel(hour: 0, minute: 0, seconds: 0);
   final TaskRepository taskRepository = TaskRepository();
 
+  final maskFormatter = MaskFormatter();
+
   final finalizing = RxBool(false);
 
   TaskController(TaskModel task) {
@@ -32,81 +36,90 @@ class TaskController extends GetxController {
   }
 
   @override
-  void onClose() {
+  void onClose() async {
     if (task.value!.status != StatusEnum.finish) {
-      stopTimer();
+      await stopTimer();
     }
     Get.delete<TaskController>();
     super.onClose();
   }
 
   void startTimer() {
-    task.value!.status = StatusEnum.progress;
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (hours.value == 0 && minutes.value == 0 && seconds.value == 0) {
-        timer.cancel();
-        updateTask();
-        task.value!.lated = true;
-        runTimer();
-      } else {
-        seconds.value--;
+    if (task.value!.status != StatusEnum.progress) {
+      task.value!.status = StatusEnum.progress;
+      timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (hours.value == 0 && minutes.value == 0 && seconds.value == 0) {
+          timer.cancel();
+          updateTask();
+          task.value!.lated = true;
+          runTimer();
+        } else {
+          seconds.value--;
 
-        if (minutes.value == firstTimerModel?.minute) {
-          if (hours.value == firstTimerModel?.hour && minutes.value == 0) {
-            hours.value--;
-            minutes.value = 59;
-          } else {
-            minutes.value--;
+          if (minutes.value == firstTimerModel?.minute) {
+            if (hours.value == firstTimerModel?.hour && minutes.value == 0) {
+              hours.value--;
+              minutes.value = 59;
+            } else {
+              minutes.value--;
+            }
+          }
+
+          if (seconds.value == 0) {
+            if (minutes.value != 0) {
+              seconds.value = 60;
+            }
+            if (minutes.value != 0) {
+              minutes.value--;
+            }
+          }
+
+          if (minutes.value == 0) {
+            if (hours.value != 0) {
+              minutes.value = 59;
+            }
+            if (hours.value != 0) {
+              hours.value--;
+            }
           }
         }
-
-        if (seconds.value == 0) {
-          if (minutes.value != 0) {
-            seconds.value = 60;
-          }
-          if (minutes.value != 0) {
-            minutes.value--;
-          }
-        }
-
-        if (minutes.value == 0) {
-          if (hours.value != 0) {
-            minutes.value = 59;
-          }
-          if (hours.value != 0) {
-            hours.value--;
-          }
-        }
-      }
-    });
+      });
+    }
   }
 
   void startTimerLate() {
-    task.value!.status = StatusEnum.progress;
-    timerLate = Timer.periodic(const Duration(seconds: 1), (timer) {
-      seconds.value++;
+    if (task.value!.status != StatusEnum.progress || (task.value!.lated ?? false)) {
+      task.value!.status = StatusEnum.progress;
+      timerLate = Timer.periodic(const Duration(seconds: 1), (timer) {
+        seconds.value++;
 
-      if (seconds.value == 60) {
-        seconds.value = 0;
-        if (minutes.value != 60) {
-          minutes.value++;
+        if (seconds.value == 60) {
+          seconds.value = 0;
+          if (minutes.value != 60) {
+            minutes.value++;
+          }
         }
-      }
 
-      if (minutes.value == 60) {
-        minutes.value = 0;
-        hours.value++;
-      }
-    });
+        if (minutes.value == 60) {
+          minutes.value = 0;
+          hours.value++;
+        }
+      });
+    }
   }
 
-  void stopTimer() {
-    if (timerLate != null && timer != null) {
-      (task.value!.lated ?? false) ? timerLate!.cancel() : timer!.cancel();
-      task.value!.status = StatusEnum.stoped;
-      task.refresh();
-      updateTask();
+  Future<void> stopTimer() async {
+    if (timerLate != null) {
+      if (task.value!.lated ?? false) timerLate!.cancel();
     }
+
+    if (timer != null) {
+      timer!.cancel();
+    }
+
+    task.value!.status = StatusEnum.stoped;
+    task.refresh();
+    await updateTask();
   }
 
   Future<void> runTimer() async {
@@ -174,9 +187,9 @@ class TaskController extends GetxController {
   preparTimerTaskToUpdate() {
     if (task.value?.lated ?? false) {
       task.value?.timeLate = '${hours.value}:${minutes.value}:${seconds.value}';
-    } else {
-      task.value?.timeUtilized = '${hours.value}:${minutes.value}:${seconds.value}';
     }
+
+    task.value?.timeUtilized = '${hours.value}:${minutes.value}:${seconds.value}';
   }
 
   updateTask() async {
@@ -191,15 +204,22 @@ class TaskController extends GetxController {
   }
 
   Future<void> completeTask() async {
-    finalizing(true);
-    task.value!.status = StatusEnum.stoped;
-    task.value!.status = StatusEnum.finish;
-    await updateTask();
-
-    finalizing(false);
+    try {
+      finalizing(true);
+      await stopTimer();
+      task.value!.status = StatusEnum.finish;
+      await updateTask();
+      getTimers();
+    } catch (e) {
+      Get.snackbar("Ops", "ocorreu um erro.");
+    } finally {
+      _updateListTaskFromHomePage();
+      finalizing(false);
+    }
   }
 
-  String formatPaddingLeftZero(int number) {
-    return number.toString().padLeft(2, '0');
+  _updateListTaskFromHomePage() {
+    final controller = Get.find<HomePageController>();
+    controller.fetchTaks();
   }
 }
