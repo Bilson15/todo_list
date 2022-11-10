@@ -68,6 +68,49 @@ class HomePage extends StatelessWidget {
       ),
       centerTitle: true,
       backgroundColor: accentColor,
+      actions: [
+        GestureDetector(
+          onTap: () {
+            Get.dialog(
+              AlertDialog(
+                title: const Text(
+                  'Aviso',
+                  style: TextStyle(color: accentColor),
+                ),
+                content: const Text(
+                  'Deseja excluir todas as suas tarefas do registro ?',
+                  style: TextStyle(color: accentColor),
+                ),
+                actions: [
+                  TextButton(
+                    child: const Text(
+                      "Não",
+                      style: TextStyle(color: accentColor),
+                    ),
+                    onPressed: () => Get.back(),
+                  ),
+                  TextButton(
+                    child: const Text(
+                      "Sim",
+                      style: TextStyle(color: accentColor),
+                    ),
+                    onPressed: () async {
+                      Get.back();
+                      await controller.deleteAllTasks();
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Icon(
+              Icons.delete,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -205,7 +248,7 @@ class HomePage extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Form(
                     key: controller.formKey,
                     child: Column(
@@ -230,7 +273,7 @@ class HomePage extends StatelessWidget {
                           controller: controller.description,
                           cursorColor: accentColor,
                           maxLength: 120,
-                          textInputAction: TextInputAction.next,
+                          textInputAction: TextInputAction.done,
                           decoration: const InputDecoration(
                             labelText: 'Descrição',
                             counterText: '',
@@ -243,7 +286,7 @@ class HomePage extends StatelessWidget {
                           onTap: () async {
                             controller.timeOfDay = await showTimePicker(
                               context: context,
-                              initialTime: const TimeOfDay(hour: 00, minute: 30),
+                              initialTime: controller.timeOfDay ?? const TimeOfDay(hour: 00, minute: 30),
                               initialEntryMode: TimePickerEntryMode.dialOnly,
                               builder: (context, child) {
                                 return Theme(
@@ -278,8 +321,8 @@ class HomePage extends StatelessWidget {
                                 Text(
                                   controller.estimated.value,
                                   style: const TextStyle(
-                                    fontSize: 20,
-                                    color: gray,
+                                    fontSize: 16,
+                                    color: yellow,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -331,7 +374,11 @@ class HomePage extends StatelessWidget {
                               )
                             : const Text(
                                 "Criar",
-                                style: TextStyle(color: Colors.white),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                       ),

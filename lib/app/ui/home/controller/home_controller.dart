@@ -14,7 +14,7 @@ class HomePageController extends GetxController {
   late final title = TextEditingController();
   late final description = TextEditingController();
   late final estimated = RxString('');
-  late TimeOfDay? timeOfDay;
+  late TimeOfDay? timeOfDay = const TimeOfDay(hour: 00, minute: 30);
 
   final creating = RxBool(false);
   final loading = RxBool(false);
@@ -83,6 +83,7 @@ class HomePageController extends GetxController {
     title.clear();
     description.clear();
     estimated.value = '';
+    timeOfDay = const TimeOfDay(hour: 00, minute: 30);
   }
 
   Future<void> _refrashListOrdem() async {
@@ -104,5 +105,20 @@ class HomePageController extends GetxController {
     await deleteTask(taskModel.id ?? -1);
 
     return taskModel;
+  }
+
+  Future<void> deleteAllTasks() async {
+    try {
+      loading(true);
+
+      for (final task in listTasks) {
+        await homeRepository.deleteTask(task?.id ?? -1);
+      }
+      await fetchTaks();
+    } catch (e) {
+      Get.snackbar("Ops", "ocorreu um erro.");
+    } finally {
+      loading(false);
+    }
   }
 }
