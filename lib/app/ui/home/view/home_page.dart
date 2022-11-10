@@ -68,49 +68,51 @@ class HomePage extends StatelessWidget {
       ),
       centerTitle: true,
       backgroundColor: accentColor,
-      actions: [
-        GestureDetector(
-          onTap: () {
-            Get.dialog(
-              AlertDialog(
-                title: const Text(
-                  'Aviso',
-                  style: TextStyle(color: accentColor),
-                ),
-                content: const Text(
-                  'Deseja excluir todas as suas tarefas do registro ?',
-                  style: TextStyle(color: accentColor),
-                ),
-                actions: [
-                  TextButton(
-                    child: const Text(
-                      "Não",
-                      style: TextStyle(color: accentColor),
-                    ),
-                    onPressed: () => Get.back(),
-                  ),
-                  TextButton(
-                    child: const Text(
-                      "Sim",
-                      style: TextStyle(color: accentColor),
-                    ),
-                    onPressed: () async {
-                      Get.back();
-                      await controller.deleteAllTasks();
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-          child: const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Icon(
-              Icons.delete,
+      actions: [Obx(() => controller.listTasks.isEmpty ? const SizedBox.shrink() : _buildDeleteAllTasks())],
+    );
+  }
+
+  _buildDeleteAllTasks() {
+    return GestureDetector(
+      onTap: () {
+        Get.dialog(
+          AlertDialog(
+            title: const Text(
+              'Aviso',
+              style: TextStyle(color: accentColor),
             ),
+            content: const Text(
+              'Deseja excluir todas as suas tarefas do registro ?',
+              style: TextStyle(color: accentColor),
+            ),
+            actions: [
+              TextButton(
+                child: const Text(
+                  "Não",
+                  style: TextStyle(color: accentColor),
+                ),
+                onPressed: () => Get.back(),
+              ),
+              TextButton(
+                child: const Text(
+                  "Sim",
+                  style: TextStyle(color: accentColor),
+                ),
+                onPressed: () async {
+                  Get.back();
+                  await controller.deleteAllTasks();
+                },
+              ),
+            ],
           ),
+        );
+      },
+      child: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16),
+        child: Icon(
+          Icons.delete,
         ),
-      ],
+      ),
     );
   }
 
