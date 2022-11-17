@@ -41,6 +41,7 @@ class TaskPage extends StatelessWidget {
                           ? _buildInfoCompletedTask()
                           : const SizedBox.shrink(),
                     ),
+                    const SizedBox(height: 18),
                   ],
                 ),
         ),
