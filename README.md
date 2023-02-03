@@ -1,6 +1,16 @@
 # todo_list
 
-A new Flutter project.
+TODO List
+
+# Descrição
+Projeto desenvolvido como pratica de flutter com integração com API e gerenciamento de estado em demanda da Faculdade.
+O projeto se basea na ideia de ser uma lista de a fazeres com cronometro de estimativa de tempo. assim para quem utilizar conseguir demarcar tarefas e definir um tempo estimado para que aquela terefa seja concluida, assim demarcando, inicio, fim, pause e atraso.
+
+# Tecnologias
+
+- Flutter
+- GetX
+- MockApi
 
 ## Getting Started
 
